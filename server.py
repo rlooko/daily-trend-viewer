@@ -35,19 +35,21 @@ IMG_CACHE_MAX = 600
 
 # ---------------------------------------------------------------- 유튜브
 # 카테고리 → 유튜브 검색어 매핑
+# (다은 채널 '이렇게 아름다은' 레퍼런스용 — 뷰티·자기관리·룩북 중심)
 CATEGORIES = {
-    "먹방": "먹방",
-    "뷰티/패션": "뷰티 메이크업 패션",
-    "브이로그": "브이로그",
-    "예능/코미디": "예능 웃긴 영상",
-    "영화/드라마": "영화 드라마 리뷰",
-    "테크/IT": "테크 리뷰",
-    "지식/교육": "지식 교양",
-    "여행": "여행",
-    "동물": "강아지 고양이",
+    # 다은 님 채널 '이렇게 아름다은' — 클래식 클린걸 · 자기관리 · 뷰티/올리브영/자라 룩북 · 바레/붓기
+    "다은:뷰티/올영": ["올리브영", "뷰티 메이크업"],
+    "다은:룩북/패션": ["룩북", "데일리룩"],
+    "다은:자기관리/바레": ["자기관리", "바레"],
+    # 용은 님 채널 '수은집' — 신혼·이사 리빙 + AI 부업 수익화
+    "수은:신혼/리빙": ["신혼집", "리빙"],
+    "수은:AI/부업": ["AI 부업", "부업"],
 }
+# 검색어는 1~2단어로 짧게 유지합니다. 긴 조합어(예: "뷰티 메이크업 패션")는
+# 조회수순 + 기간 필터에서 결과가 0건으로 돌아옵니다(2026-11-19 확인).
 # "전체" 탭은 아래 카테고리들을 합쳐 조회수순으로 재정렬
-ALL_MERGE = ["먹방", "브이로그", "예능/코미디", "뷰티/패션", "영화/드라마", "여행"]
+ALL_MERGE = ["다은:뷰티/올영", "다은:룩북/패션", "다은:자기관리/바레",
+             "수은:신혼/리빙", "수은:AI/부업"]
 
 # 검색 필터 protobuf: 업로드 날짜 (2=오늘, 3=이번 주, 4=이번 달)
 PERIOD_CODE = {"day": 2, "week": 3, "month": 4}
@@ -64,21 +66,30 @@ PERIOD_EXCLUDE = {
 IG_APP_ID = "936619743392459"  # instagram.com 웹이 쓰는 공개 앱 ID
 ACCOUNTS_FILE = os.path.join(BASE_DIR, "reels_accounts.json")
 DEFAULT_IG_ACCOUNTS = [
-    "openai", "runwayapp", "pika_labs", "lumalabsai", "midjourney",
-    "klingai_official", "heygen_official", "higgsfield.ai", "googledeepmind",
+    "itsoreun",       # 차옳은 — 클래식 클린걸 · 관리일상 (다은 메인 레퍼런스)
+    "_goodjung_",    # 응정 — GRWM · 룩북 · 하울 (10초 유입 구조)
+    "seon_uoo",       # 김선우 — 감성 룩북
+    "goxnniee",       # 데일리룩 · 카페 · 뷰티
+    "hazelchoiii",    # 런던·서울 뷰티와 일상
+    "risabae_art",    # 이사배 — 메이크업 튜토리얼
+    "youngridays",    # 영리 — 뷰티 · 자기관리 · 패션 팁
+    "ram_bo_reum",    # 람보름 — 셀프 관리 루틴
+    "1__xixx",        # 미나 — 뷰티 · 시술 · 자기관리
+    "haveyun_",       # 해브윤 — 데일리/출근룩 코디
+    "j._.make",       # 미소 — 메이크업 작품
+    "egewajo",        # 에게와 — 따라 하기 쉬운 메이크업
 ]
 
 # ---------------------------------------------------------------- X (트위터)
 X_ACCOUNTS_FILE = os.path.join(BASE_DIR, "x_accounts.json")
 DEFAULT_X_ACCOUNTS = [
-    "OpenAI", "runwayml", "Kling_ai", "GoogleDeepMind", "midjourney",
-    "LumaLabsAI", "pika_labs", "heygen_com", "elevenlabsio", "AIatMeta",
+    "diet_prada", "voguemagazine", "allure",
 ]
 
 # ---------------------------------------------------------------- 스레드(Threads)
 THREADS_ACCOUNTS_FILE = os.path.join(BASE_DIR, "threads_accounts.json")
 DEFAULT_THREADS_ACCOUNTS = [
-    "openai", "runway", "google", "meta.ai", "zuck",
+    "_goodjung_",
 ]
 IG_APP_ID_THREADS = "238260118697367"  # threads.com 웹이 쓰는 공개 앱 ID
 
@@ -86,8 +97,7 @@ IG_APP_ID_THREADS = "238260118697367"  # threads.com 웹이 쓰는 공개 앱 ID
 # tikwm 무료 공개 API가 서명(X-Bogus/msToken)을 대신 처리해 조회수·좋아요·댓글까지 반환합니다.
 TIKTOK_ACCOUNTS_FILE = os.path.join(BASE_DIR, "tiktok_accounts.json")
 DEFAULT_TIKTOK_ACCOUNTS = [
-    "openai", "runwayapp", "krea.ai", "elevenlabs", "sora",
-    "zachking", "khaby.lame", "google",
+    "_goodjung_",
 ]
 TIKWM_BASE = "https://www.tikwm.com/api"
 TIKTOK_REGION = "KR"
@@ -255,16 +265,23 @@ def merge_yt_searches(queries, period, shorts):
     return merged
 
 
+def _query_list(value):
+    """카테고리 값은 검색어 문자열 또는 문자열 리스트(여러 검색어)를 모두 허용합니다."""
+    if isinstance(value, str):
+        return [value]
+    return list(value)
+
+
 def get_videos(category: str, period: str, shorts: bool, force: bool, enrich: bool = False, query: str = ""):
     def fetch():
         if query:
             queries = [query]
         elif category == "전체":
-            queries = [CATEGORIES[c] for c in ALL_MERGE]
+            queries = [q for c in ALL_MERGE for q in _query_list(CATEGORIES[c])]
         elif category == "AI":
             queries = AI_YT_QUERIES
         else:
-            queries = [CATEGORIES.get(category, category)]
+            queries = _query_list(CATEGORIES.get(category, category))
         vids = merge_yt_searches(queries, period, shorts)
         if enrich:
             enrich_likes(vids)

@@ -20,13 +20,14 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "_site"
 PERIODS = ("day", "week", "month")
 IMG_LIMIT = 400  # 스냅샷당 내려받는 썸네일 최대 개수
 # 수집이 실패(0개)한 소스는 이전 배포 스냅샷을 재사용합니다
-PAGES_BASE = os.environ.get("PAGES_BASE", "https://lmorejh.github.io/daily-trend-viewer/")
+PAGES_BASE = os.environ.get("PAGES_BASE", "https://rlooko.github.io/daily-trend-viewer/")
 
 # static_shim.js의 SLUG와 반드시 일치해야 합니다 (파일명에 쓸 영문 슬러그)
 CATEGORY_SLUGS = {
-    "전체": "all", "AI": "ai", "먹방": "mukbang", "뷰티/패션": "beauty",
-    "브이로그": "vlog", "예능/코미디": "fun", "영화/드라마": "movie",
-    "테크/IT": "tech", "지식/교육": "edu", "여행": "travel", "동물": "animal",
+    "전체": "all", "AI": "ai",
+    "다은:뷰티/올영": "daeun_beauty", "다은:룩북/패션": "daeun_look",
+    "다은:자기관리/바레": "daeun_care",
+    "수은:신혼/리빙": "sooeun_living", "수은:AI/부업": "sooeun_side",
 }
 
 
